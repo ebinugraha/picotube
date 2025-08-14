@@ -9,14 +9,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
-import {
-  FlameIcon,
-  History,
-  HomeIcon,
-  ListVideo,
-  PlaySquareIcon,
-  ThumbsUp,
-} from "lucide-react";
+import { History, ListVideo, ThumbsUp } from "lucide-react";
 import Link from "next/link";
 
 const items = [

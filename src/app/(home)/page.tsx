@@ -1,8 +1,11 @@
-import { HomeLayout } from "@/modules/home/ui/layouts/home-layout";
-import Image from "next/image";
+import { useTRPC } from "@/trpc/client";
+import { caller, trpc } from "@/trpc/server";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
-export default function Home() {
-  return (
-    <p>Hello world</p>
-  );
+export default async function Home() {
+  const greeting = await caller.hello({
+    text: "world",
+  });
+  //    ^? { greeting: string }
+  return <div>{greeting.greeting}</div>;
 }
