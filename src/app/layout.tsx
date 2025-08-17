@@ -18,10 +18,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${nunito.className} antialiased`}>
-        <TRPCReactProvider>{children}</TRPCReactProvider>
-      </body>
-    </html>
+    <TRPCReactProvider>
+      <html lang="en">
+        <body className={`${nunito.className} antialiased`}>{children}</body>
+      </html>
+    </TRPCReactProvider>
   );
 }

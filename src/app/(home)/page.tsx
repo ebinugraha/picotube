@@ -1,11 +1,26 @@
-import { useTRPC } from "@/trpc/client";
-import { caller, trpc } from "@/trpc/server";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import HomeView from "@/modules/home/ui/views/home-view";
+import { HydrateClient, prefetch, trpc } from "@/trpc/server";
+import { Suspense } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 
-export default async function Home() {
-  const greeting = await caller.hello({
-    text: "world",
-  });
-  //    ^? { greeting: string }
-  return <div>{greeting.greeting}</div>;
+export const dynamic = "force-dynamic";
+
+interface Props {
+  searchParams: Promise<{
+    categoryId?: string;
+  }>;
 }
+
+const Page = async ({ searchParams }: Props) => {
+  const { categoryId } = await searchParams;
+
+  await prefetch(trpc.category.getMany.queryOptions());
+
+  return (
+    <HydrateClient>
+      <HomeView categoryId={categoryId} />
+    </HydrateClient>
+  );
+};
+
+export default Page;

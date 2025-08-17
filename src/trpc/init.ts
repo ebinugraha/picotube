@@ -25,7 +25,6 @@ const t = initTRPC.create({
 export const createTRPCRouter = t.router;
 export const createCallerFactory = t.createCallerFactory;
 export const baseProcedure = t.procedure;
-
 export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -38,19 +37,20 @@ export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
     });
   }
 
+  // limit the number of request per user
   const { success } = await ratelimit.limit(session.user.id);
 
   if (!success) {
     throw new TRPCError({
       code: "TOO_MANY_REQUESTS",
-      message: "You are being rate limited. Please try again later.",
+      message: "You have exceeded the number of requests allowed.",
     });
   }
 
   return next({
     ctx: {
       ...ctx,
-      userId: session,
+      session,
     },
   });
 });
