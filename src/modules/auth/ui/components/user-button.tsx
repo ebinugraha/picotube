@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Avatar } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,17 +11,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { authClient } from "@/lib/auth-client";
-import { LogOut, User } from "lucide-react";
+import { ClapperboardIcon, LogOut, User } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export const UserButton = () => {
   const router = useRouter();
-  const { data } = authClient.useSession();
+  const { data, isPending } = authClient.useSession();
 
-  if (!data || !data.user) {
-    return <Skeleton className="h-15 w-full rounded-md" />;
+  if (!data || !data.user || isPending) {
+    return <Skeleton className="h-8 w-8 rounded-full" />;
   }
 
   const onLogout = () => {
@@ -37,8 +37,8 @@ export const UserButton = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex items-center justify-center rounded-full">
-        <Avatar className="h-10 w-10 rounded-full">
-          <Image src={data.user.image!} height={50} width={50} alt="test" />
+        <Avatar className="h-8 w-8 rounded-full">
+          <Image src={data.user.image!} height={40} width={40} alt="test" />
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" side="bottom" className="w-82">
@@ -62,6 +62,15 @@ export const UserButton = () => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem
+          asChild
+          className="flex items-center cursor-pointer pl-4"
+        >
+          <Link href={"/studio"}>
+            <ClapperboardIcon className="size-5" />
+            <span className="ml-2 text-[16px]">Studio</span>
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem className="flex items-center cursor-pointer pl-4">
           <LogOut className="size-5" />
           <span className="ml-2 text-[16px]" onClick={onLogout}>
