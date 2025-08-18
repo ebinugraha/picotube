@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Nunito } from "next/font/google";
 import { TRPCProvider, TRPCReactProvider } from "@/trpc/client";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "Pico Tube",
@@ -20,7 +21,9 @@ export default function RootLayout({
   return (
     <TRPCReactProvider>
       <html lang="en">
-        <body className={`${nunito.className} antialiased`}>{children}</body>
+        <body className={`${nunito.className} antialiased`}>
+          {children} <Toaster />
+        </body>
       </html>
     </TRPCReactProvider>
   );
