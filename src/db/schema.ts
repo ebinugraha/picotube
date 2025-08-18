@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
   pgTable,
   text,
@@ -22,6 +23,10 @@ export const user = pgTable("user", {
     .$defaultFn(() => /* @__PURE__ */ new Date())
     .notNull(),
 });
+
+export const userRelations = relations(user, ({ many }) => ({
+  videos: many(videos),
+}));
 
 export const session = pgTable("session", {
   id: text("id").primaryKey(),
@@ -80,3 +85,40 @@ export const categories = pgTable("categories", {
     .$defaultFn(() => /* @__PURE__ */ new Date())
     .notNull(),
 });
+
+export const categoryRelations = relations(categories, ({ many }) => ({
+  videos: many(videos),
+}));
+
+export const videos = pgTable("videos", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => nanoid()),
+  title: text("title").notNull(),
+  description: text("description"),
+  userId: text("user_id")
+    .references(() => user.id, {
+      onDelete: "cascade",
+    })
+    .notNull(),
+  categoryId: text("category_id").references(() => categories.id, {
+    onDelete: "set null",
+  }),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => /* @__PURE__ */ new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at")
+    .$defaultFn(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});
+
+export const videosRelations = relations(videos, ({ one }) => ({
+  user: one(user, {
+    fields: [videos.userId],
+    references: [user.id],
+  }),
+  category: one(categories, {
+    fields: [videos.categoryId],
+    references: [categories.id],
+  }),
+}));
