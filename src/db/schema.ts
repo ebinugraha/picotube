@@ -5,6 +5,7 @@ import {
   timestamp,
   boolean,
   integer,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 import { nanoid } from "nanoid";
 
@@ -90,6 +91,8 @@ export const categoryRelations = relations(categories, ({ many }) => ({
   videos: many(videos),
 }));
 
+export const videoVisbility = pgEnum("video_visibility", ["private", "public"]);
+
 export const videos = pgTable("videos", {
   id: text("id")
     .primaryKey()
@@ -105,6 +108,10 @@ export const videos = pgTable("videos", {
   muxPlayBackId: text("mux_playback_id").unique(),
   // untuk subtitle
   muxTrackId: text("mux_track_id").unique(),
+  thumbnailUrl: text("thumbnail_url"),
+  previewUrl: text("preview_url"),
+  duration: integer("duration"),
+  visibility: videoVisbility("visibility").default("private").notNull(),
   muxTrackStatus: text("mux_track_status"),
   userId: text("user_id")
     .references(() => user.id, {
