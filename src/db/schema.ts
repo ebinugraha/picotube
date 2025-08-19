@@ -96,6 +96,16 @@ export const videos = pgTable("videos", {
     .$defaultFn(() => nanoid()),
   title: text("title").notNull(),
   description: text("description"),
+  // status apakah video dia ready atau tidak
+  muxStatus: text("mux_status"),
+  // ini untuk apakah asset nya sudah dibuat atau tidak
+  muxAssetId: text("mux_asset_id").unique(),
+  muxUploadId: text("mux_upload_id").unique(),
+  // untuk thumbnail
+  muxPlayBackId: text("mux_playback_id").unique(),
+  // untuk subtitle
+  muxTrackId: text("mux_track_id").unique(),
+  muxTrackStatus: text("mux_track_status"),
   userId: text("user_id")
     .references(() => user.id, {
       onDelete: "cascade",
@@ -104,6 +114,7 @@ export const videos = pgTable("videos", {
   categoryId: text("category_id").references(() => categories.id, {
     onDelete: "set null",
   }),
+
   createdAt: timestamp("created_at")
     .$defaultFn(() => /* @__PURE__ */ new Date())
     .notNull(),
