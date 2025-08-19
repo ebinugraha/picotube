@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "dev:all": "concurrently \"bun run dev:webhook\" \"bun run dev\"",
     "dev": "next dev",
+    "dev:webhook": "ngrok http --url=gopher-driven-cattle.ngrok-free.app 3000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -11,6 +13,8 @@
     "db:seed": "bun src/scripts/seed.ts"
   },
   "dependencies": {
+    "@mux/mux-node": "^12.4.1",
+    "@mux/mux-uploader-react": "^1.2.0",
     "@neondatabase/serverless": "^1.0.1",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-dialog": "^1.1.15",
@@ -28,6 +32,7 @@
     "class-variance-authority": "^0.7.1",
     "client-only": "^0.0.1",
     "clsx": "^2.1.1",
+    "concurrently": "^9.2.0",
     "dotenv": "^17.2.1",
     "drizzle-orm": "^0.44.4",
     "embla-carousel-react": "^8.6.0",
@@ -43,6 +48,7 @@
     "sonner": "^2.0.7",
     "superjson": "^2.2.2",
     "tailwind-merge": "^3.3.1",
+    "vaul": "^1.1.2",
     "zod": "^4.0.17"
   },
   "devDependencies": {
