@@ -9,6 +9,13 @@ import {
 } from "drizzle-orm/pg-core";
 import { nanoid } from "nanoid";
 
+import {
+  createInsertSchema,
+  createSelectSchema,
+  createUpdateSchema,
+  CreateUpdateSchema,
+} from "drizzle-zod";
+
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -129,6 +136,10 @@ export const videos = pgTable("videos", {
     .$defaultFn(() => /* @__PURE__ */ new Date())
     .notNull(),
 });
+
+export const videoInsertSchema = createInsertSchema(videos);
+export const videoUpdateSchema = createUpdateSchema(videos);
+export const videoSelectSchema = createSelectSchema(videos);
 
 export const videosRelations = relations(videos, ({ one }) => ({
   user: one(user, {
