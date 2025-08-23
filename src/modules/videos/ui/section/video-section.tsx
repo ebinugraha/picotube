@@ -3,12 +3,17 @@
 import { cn } from "@/lib/utils";
 import { VideoPlayer } from "@/modules/studio/ui/components/video-player";
 import { useTRPC } from "@/trpc/client";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { VideoBanner } from "../components/video-banner";
 import { VideoTopRow } from "../components/video-top-row";
+import { authClient } from "@/lib/auth-client";
 
 interface VideoSectionProps {
   videoId: string;
@@ -26,11 +31,35 @@ export const VideoSection = ({ videoId }: VideoSectionProps) => {
 
 export const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const data = authClient.useSession().data?.user;
+
   const { data: video } = useSuspenseQuery(
     trpc.videos.getOne.queryOptions({
       id: videoId,
     })
   );
+
+  const videosView = useMutation(
+    trpc.videoViews.create.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(
+          trpc.videos.getOne.queryOptions({
+            id: videoId,
+          })
+        );
+      },
+    })
+  );
+
+  const handleView = () => {
+    if (!data) {
+      return;
+    }
+    videosView.mutateAsync({
+      videoId,
+    });
+  };
 
   return (
     <>
@@ -42,7 +71,7 @@ export const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
       >
         <VideoPlayer
           autoPlay
-          onPlay={() => {}}
+          onPlay={handleView}
           playbackId={video.muxPlayBackId}
           thumbnailUrl={video.thumbnailUrl}
         />
