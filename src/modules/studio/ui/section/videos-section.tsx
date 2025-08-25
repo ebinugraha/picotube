@@ -143,7 +143,7 @@ export const VideosSectionSuspense = () => {
                       <span className="text-sm line-clamp-1">
                         {video.title}
                       </span>
-                      <span className="text-muted-foreground line-clamp-1 text-xs">
+                      <span className="text-muted-foreground line-clamp-1 text-xs truncate w-sm">
                         {video.description || "No description"}
                       </span>
                     </div>
