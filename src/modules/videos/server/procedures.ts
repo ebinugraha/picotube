@@ -1,5 +1,6 @@
 import db from "@/db";
 import {
+  subscriptions,
   user,
   videoReactions,
   videos,
@@ -14,7 +15,7 @@ import {
   protectedProcedure,
 } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
-import { and, eq, getTableColumns, inArray } from "drizzle-orm";
+import { and, eq, getTableColumns, inArray, isNotNull } from "drizzle-orm";
 import { headers } from "next/headers";
 import { UTApi } from "uploadthing/server";
 import z from "zod";
@@ -50,12 +51,30 @@ export const videosRouter = createTRPCRouter({
           .where(inArray(videoReactions.userId, userIdAuth ? [userIdAuth] : []))
       );
 
+      const viewerSubscription = db.$with("viewer_subscription").as(
+        db
+          .select()
+          .from(subscriptions)
+          .where(
+            inArray(subscriptions.viewerId, userIdAuth ? [userIdAuth] : [])
+          )
+      );
+
+      // console.log("hasil : ", viewerSubscription);
+
       const [existingVideo] = await db
-        .with(viewerReactions)
+        .with(viewerReactions, viewerSubscription)
         .select({
           ...getTableColumns(videos),
           user: {
             ...getTableColumns(user),
+            subscriberCount: db.$count(
+              subscriptions,
+              eq(subscriptions.creatorId, user.id)
+            ),
+            viewerSubscribe: isNotNull(viewerSubscription.viewerId).mapWith(
+              Boolean
+            ),
           },
           viewCount: db.$count(videoViews, eq(videoViews.videoId, videos.id)),
           likeCount: db.$count(
@@ -77,8 +96,8 @@ export const videosRouter = createTRPCRouter({
         .from(videos)
         .innerJoin(user, eq(user.id, videos.userId))
         .leftJoin(viewerReactions, eq(viewerReactions.videoId, videos.id))
-        .where(eq(videos.id, input.id))
-        .groupBy(videos.id, user.id, viewerReactions.type);
+        .leftJoin(viewerSubscription, eq(viewerSubscription.creatorId, user.id))
+        .where(eq(videos.id, input.id));
 
       if (!existingVideo) {
         throw new TRPCError({ code: "NOT_FOUND" });
