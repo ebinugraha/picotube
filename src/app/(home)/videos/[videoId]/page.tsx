@@ -10,7 +10,10 @@ interface PageProps {
 const Page = async ({ params }: PageProps) => {
   const { videoId } = await params;
 
-  await prefetch(trpc.videos.getOne.queryOptions({ id: videoId }));
+  Promise.all([
+    prefetch(trpc.videos.getOne.queryOptions({ id: videoId })),
+    prefetch(trpc.comments.getMany.queryOptions({ videoId })),
+  ]);
 
   return (
     <HydrateClient>

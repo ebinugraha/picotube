@@ -29,7 +29,7 @@ export const VideoOwner = ({ user, videoId }: VideoOwnerProps) => {
           </Avatar>
           <div className="flex flex-col ">
             {user.name}
-            <span className="text-sm text-muted-foreground line-clamp-1">
+            <span className="text-sm text-muted-foreground  line-clamp-1">
               {user.subscriberCount} Subscriber
             </span>
           </div>
