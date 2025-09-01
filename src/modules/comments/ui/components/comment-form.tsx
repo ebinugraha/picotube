@@ -2,6 +2,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
+import { DEFAULT_LIMIT } from "@/constant";
 import { commentInsertSchema } from "@/db/schema";
 import { authClient } from "@/lib/auth-client";
 import { useTRPC } from "@/trpc/client";
@@ -33,7 +34,10 @@ export const CommentForm = ({ videoId, onSuccess }: CommentFormProps) => {
     trpc.comments.create.mutationOptions({
       onSuccess: async () => {
         await queryClient.invalidateQueries(
-          trpc.comments.getMany.queryOptions({ videoId: videoId })
+          trpc.comments.getMany.infiniteQueryOptions({
+            videoId: videoId,
+            limit: DEFAULT_LIMIT,
+          })
         );
         form.reset();
         toast.success("comment added");
