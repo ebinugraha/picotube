@@ -7,6 +7,7 @@ import {
   integer,
   pgEnum,
   primaryKey,
+  foreignKey,
 } from "drizzle-orm/pg-core";
 import { nanoid } from "nanoid";
 
@@ -201,22 +202,37 @@ export const videosRelations = relations(videos, ({ one, many }) => ({
   comments: many(comments),
 }));
 
-export const comments = pgTable("comments", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => nanoid()),
-  userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
-  videoId: text("video_id")
-    .references(() => videos.id, { onDelete: "cascade" })
-    .notNull(),
-  value: text("value").notNull(),
-  createdAt: timestamp("created_at")
-    .$defaultFn(() => /* @__PURE__ */ new Date())
-    .notNull(),
-  updatedAt: timestamp("updated_at")
-    .$defaultFn(() => /* @__PURE__ */ new Date())
-    .notNull(),
-});
+export const comments = pgTable(
+  "comments",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => nanoid()),
+    userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
+    videoId: text("video_id")
+      .references(() => videos.id, { onDelete: "cascade" })
+      .notNull(),
+    value: text("value").notNull(),
+    parentId: text("parent_id"),
+    createdAt: timestamp("created_at")
+      .$defaultFn(() => /* @__PURE__ */ new Date())
+      .notNull(),
+    updatedAt: timestamp("updated_at")
+      .$defaultFn(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (t) => {
+    return [
+      {
+        parentReferences: foreignKey({
+          columns: [t.parentId],
+          foreignColumns: [t.id],
+          name: "comments_parent_id_fkey",
+        }).onDelete("cascade"),
+      },
+    ];
+  }
+);
 
 export const commentRelation = relations(comments, ({ one, many }) => ({
   user: one(user, {
@@ -227,6 +243,11 @@ export const commentRelation = relations(comments, ({ one, many }) => ({
     fields: [comments.videoId],
     references: [videos.id],
   }),
+  parent: one(comments, {
+    fields: [comments.parentId],
+    references: [comments.id],
+  }),
+  replies: many(comments),
   commentReaction: many(commentReactions),
 }));
 
@@ -234,19 +255,32 @@ export const commentInsertSchema = createInsertSchema(comments);
 export const commentUpdateSchema = createUpdateSchema(comments);
 export const commentSelectSchema = createSelectSchema(comments);
 
-export const commentReactions = pgTable("comment_reactions", {
-  userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
-  commentId: text("comment_id").references(() => comments.id, {
-    onDelete: "cascade",
-  }),
-  type: videoReactionType(),
-  createdAt: timestamp("created_at")
-    .$defaultFn(() => /* @__PURE__ */ new Date())
-    .notNull(),
-  updatedAt: timestamp("updated_at")
-    .$defaultFn(() => /* @__PURE__ */ new Date())
-    .notNull(),
-});
+export const commentReactions = pgTable(
+  "comment_reactions",
+  {
+    userId: text("user_id")
+      .references(() => user.id, { onDelete: "cascade" })
+      .notNull(),
+    commentId: text("comment_id")
+      .references(() => comments.id, {
+        onDelete: "cascade",
+      })
+      .notNull(),
+    type: videoReactionType(),
+    createdAt: timestamp("created_at")
+      .$defaultFn(() => /* @__PURE__ */ new Date())
+      .notNull(),
+    updatedAt: timestamp("updated_at")
+      .$defaultFn(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (t) => [
+    primaryKey({
+      name: "comment_reactions_pk",
+      columns: [t.userId, t.commentId],
+    }),
+  ]
+);
 
 export const commentReactionRelations = relations(
   commentReactions,

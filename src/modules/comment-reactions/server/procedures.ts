@@ -1,5 +1,5 @@
 import db from "@/db";
-import { commentReactions } from "@/db/schema";
+import { commentReactions, comments } from "@/db/schema";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import { and, eq } from "drizzle-orm";
 import z from "zod";
@@ -42,7 +42,7 @@ export const commentReactionsRouter = createTRPCRouter({
         .insert(commentReactions)
         .values({ userId, commentId, type: "like" })
         .onConflictDoUpdate({
-          target: [commentReactions.userId, commentReactions.commentId],
+          target: [commentReactions.commentId, commentReactions.userId],
           set: {
             type: "like",
           },

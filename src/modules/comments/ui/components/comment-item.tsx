@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import {
+  ChevronDown,
+  ChevronUpIcon,
   MessageSquare,
   MoreVertical,
   ThumbsDown,
@@ -24,16 +26,22 @@ import { DEFAULT_LIMIT } from "@/constant";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { CommentForm } from "./comment-form";
+import { CommentReplies } from "./comment-replies";
 
 interface CommentItemProps {
   comment: CommentGetManyOutput[number];
+  variant?: "replies" | "comment";
 }
 
-export const CommentItem = ({ comment }: CommentItemProps) => {
+export const CommentItem = ({ comment, variant }: CommentItemProps) => {
   const { data } = authClient.useSession();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const router = useRouter();
+  const [isReplyOpen, setIsReplyOpen] = useState(false);
+  const [isRepliesOpen, setIsRepliesOpen] = useState(false);
 
   const remove = useMutation(
     trpc.comments.remove.mutationOptions({
@@ -123,11 +131,11 @@ export const CommentItem = ({ comment }: CommentItemProps) => {
           </Link>
           <p className="text-sm">{comment.value}</p>
           <div className="flex items-center gap-2 mt-1">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center">
               <Button
                 disabled={false}
                 variant={"ghost"}
-                className="size-8"
+                size={"sm"}
                 onClick={() => like.mutateAsync({ commentId: comment.id })}
               >
                 <ThumbsUp
@@ -142,7 +150,7 @@ export const CommentItem = ({ comment }: CommentItemProps) => {
               <Button
                 disabled={false}
                 variant={"ghost"}
-                className="size-8"
+                size={"sm"}
                 onClick={() => dislike.mutateAsync({ commentId: comment.id })}
               >
                 <ThumbsDown
@@ -155,7 +163,42 @@ export const CommentItem = ({ comment }: CommentItemProps) => {
                 </span>
               </Button>
             </div>
+            {variant === "comment" && (
+              <Button
+                variant={"ghost"}
+                size={"sm"}
+                type="button"
+                onClick={() => setIsReplyOpen(!isReplyOpen)}
+              >
+                <span className="text-xs text-muted-foreground">Reply</span>
+              </Button>
+            )}
           </div>
+
+          {comment.replyCount > 0 && (
+            <Button
+              onClick={() => setIsRepliesOpen(!isRepliesOpen)}
+              variant={"ghost"}
+              size={"sm"}
+            >
+              {isRepliesOpen ? <ChevronUpIcon /> : <ChevronDown />}
+              {comment.replyCount} Replies
+            </Button>
+          )}
+
+          {isReplyOpen && variant === "comment" && (
+            <div className="mt-2">
+              <CommentForm
+                videoId={comment.videoId}
+                onSuccess={() => {
+                  setIsReplyOpen(!isReplyOpen);
+                }}
+                parentId={comment.id}
+                variant="reply"
+                onCancel={() => setIsReplyOpen(!isReplyOpen)}
+              />
+            </div>
+          )}
         </div>
         {data?.user.id === comment.userId && (
           <DropdownMenu modal={false}>
@@ -165,10 +208,12 @@ export const CommentItem = ({ comment }: CommentItemProps) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>
-                <MessageSquare />
-                Reply
-              </DropdownMenuItem>
+              {variant === "comment" && (
+                <DropdownMenuItem onClick={() => setIsReplyOpen(!isReplyOpen)}>
+                  <MessageSquare />
+                  Reply
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 onClick={() =>
                   remove.mutateAsync({
@@ -184,6 +229,9 @@ export const CommentItem = ({ comment }: CommentItemProps) => {
           </DropdownMenu>
         )}
       </div>
+      {comment.replyCount > 0 && variant === "comment" && isRepliesOpen && (
+        <CommentReplies parentId={comment.id} videoId={comment.videoId} />
+      )}
     </div>
   );
 };
