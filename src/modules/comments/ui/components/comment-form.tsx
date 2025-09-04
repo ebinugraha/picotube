@@ -16,9 +16,18 @@ import z from "zod";
 interface CommentFormProps {
   videoId: string;
   onSuccess?: () => void;
+  parentId?: string | null;
+  variant?: "comment" | "reply";
+  onCancel?: () => void;
 }
 
-export const CommentForm = ({ videoId, onSuccess }: CommentFormProps) => {
+export const CommentForm = ({
+  videoId,
+  onSuccess,
+  parentId,
+  variant,
+  onCancel,
+}: CommentFormProps) => {
   const { data, isPending } = authClient.useSession();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -26,6 +35,7 @@ export const CommentForm = ({ videoId, onSuccess }: CommentFormProps) => {
     resolver: zodResolver(commentInsertSchema),
     defaultValues: {
       videoId,
+      parentId: parentId,
       value: "",
     },
   });
@@ -54,6 +64,11 @@ export const CommentForm = ({ videoId, onSuccess }: CommentFormProps) => {
     create.mutateAsync(value);
   };
 
+  const handleCancel = () => {
+    form.reset();
+    onCancel?.();
+  };
+
   return (
     <Form {...form}>
       <form
@@ -72,7 +87,11 @@ export const CommentForm = ({ videoId, onSuccess }: CommentFormProps) => {
                 <FormControl>
                   <Textarea
                     {...field}
-                    placeholder="Add a comments..."
+                    placeholder={
+                      variant === "reply"
+                        ? "Reply this comment"
+                        : "Add a comment"
+                    }
                     className="resize-none bg-transparent overflow-hidden min-h-0"
                   />
                 </FormControl>
@@ -80,7 +99,12 @@ export const CommentForm = ({ videoId, onSuccess }: CommentFormProps) => {
             )}
           />
           <div className="justify-end gap-2 mt-2 flex">
-            <Button disabled={create.isPending}>Comment</Button>
+            <Button variant={"ghost"} type="button" onClick={handleCancel}>
+              Cancel
+            </Button>
+            <Button disabled={create.isPending}>
+              {variant === "reply" ? "Reply" : "Comment"}
+            </Button>
           </div>
         </div>
       </form>
